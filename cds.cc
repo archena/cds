@@ -14,6 +14,9 @@
  */
 
 #include <iostream>
+#include <iomanip>
+#include <algorithm>
+#include <string.h>
 
 #include "lattice.hh"
 
@@ -21,9 +24,9 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
-  if(argc != 4)
+  if(argc < 4)
   {
-    cout << "Usage: cds <size> <iterations> <threshold>" << endl;
+    cout << "Usage: cds <size> <iterations> <threshold> [(csv|png)] [filename]. The final two arguments optionally and used to specify a file export format." << endl;
     exit(1);
   }
 
@@ -32,6 +35,7 @@ int main(int argc, char* argv[])
   cell_t t            = atof(argv[3]);
   cell_t a            = 4;
 
+  // Set up the lattice with update and coupling functions
   Lattice lattice(size,
                   [a](cell_t x) { return a * x * (1 - x); },
                   [t](cell_t& x1, cell_t& x2)
@@ -42,16 +46,50 @@ int main(int argc, char* argv[])
                   });
 
   lattice.randomize(0, 1);
-  //std::vector<cell_t> v = {0.1, 0.2, 0.3, 0.4, 0.5};
-  //lattice.assign(v.begin(), v.end());
 
-  cout << lattice
-       << endl
-       << endl;
-
-  for(int i = 0; i < iterations; ++i)
+  if(argc == 5)
   {
-    cell_t excess = lattice.update();
-    cout << lattice << " | " << excess << endl;
+    if(strncmp(argv[4], "csv", 3) == 0)
+    {
+      // const unsigned max_filename = 100;
+      // char filename[max_filename + 1] = {0};
+      // strncpy(filename, argv[5], max_filename);
+      
+      // Output as csv
+      cell_t excess = 0;
+
+      // Initial state followed by a number of updates
+      for(int i = 0; i <= iterations; ++i)
+      {
+        for_each(lattice.begin(), lattice.end(),
+                 [](cell_t x) { cout << x << ","; });
+
+        cout << excess << endl;
+        
+        excess = lattice.update();
+      }
+    }
+    else if(strncmp(argv[4], "png", 3) == 0)
+    {
+      // Write output as an image (time-space diagram)
+      cout << "Image export not supported" << endl;
+    }
+  }
+  else
+  {
+    // Print a textual summary to standard out
+    cout << lattice
+         << endl
+         << endl;
+
+    for(int i = 0; i < iterations; ++i)
+    {
+      cell_t excess = lattice.update();
+      cout << lattice << " | " << excess << endl;
+    }
+
+    cout << endl
+         << size       << " cells with "
+         << iterations << " iterations and threshold " << t << endl;
   }
 }

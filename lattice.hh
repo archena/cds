@@ -24,14 +24,19 @@ class Lattice
 {
 public:
   Lattice(unsigned size, state_function state_fn, coupling_function couple_fn);
+  cell_v_iterator begin();
+  cell_v_iterator end();
   void assign(size_t n, const cell_t& value);
   void assign(cell_v_iterator start, cell_v_iterator end);
   void randomize(cell_t min, cell_t max);
+  cell_t update(unsigned n);
   cell_t update();
+  void setMaxPrintedCells(unsigned n);
   friend std::ostream& operator<< (std::ostream& os, const Lattice& l);
 
 private:
   std::vector<cell_t> state;
   state_function fn;
   coupling_function phi;
+  unsigned max_printed_cells;
 };

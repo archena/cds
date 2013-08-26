@@ -18,7 +18,8 @@
  */
 Lattice::Lattice(unsigned size, state_function state_fn, coupling_function couple_fn)
   : fn(state_fn),
-    phi(couple_fn)
+    phi(couple_fn),
+    max_printed_cells(8)
 {
   state.assign(size, 0);
 }
@@ -52,6 +53,22 @@ void Lattice::assign(cell_v_iterator start, cell_v_iterator end)
 }
 
 /**
+ * Get the begin iterator from the internal vector
+ */
+cell_v_iterator Lattice::begin()
+{
+  return state.begin();
+}
+
+/**
+ * Get the end iterator from the internal vector
+ */
+cell_v_iterator Lattice::end()
+{
+  return state.end();
+}
+
+/**
  * Update the lattice state.
  *
  * This first applies the state transition function to all cells in the lattice
@@ -82,21 +99,43 @@ cell_t Lattice::update()
 }
 
 /**
- * Output the lattice state to a stream.
+ * Update the lattice n times
+ */
+cell_t Lattice::update(unsigned n)
+{
+  cell_t last_excess = 0;
+  
+  while(n > 0)
+  {
+    last_excess = update();
+    --n;
+  }
+
+  return last_excess;
+}
+
+/**
+ * Specify how many cells should be printed to an output stream
+ */
+void Lattice::setMaxPrintedCells(unsigned n)
+{
+  max_printed_cells = n;
+}
+
+/**
+ * Output some lattice state.
  * This may be used in conjunction with cout.
  */
 std::ostream& operator<< (std::ostream& os, const Lattice& l)
 {
-  auto iter = l.state.begin();
-  auto end  = l.state.end();
-
   os << std::setprecision(3);
 
-  while(iter != end)
+  for(unsigned i = 0; i < l.max_printed_cells; ++i)
   {
-    os << *iter << "\t" << " ";
-    ++iter;
+    os << l.state[i] << "\t" << " ";
   }
+
+  if(l.max_printed_cells < l.state.size()) os << "...";
 
   return os;
 }
